@@ -1,0 +1,354 @@
+<MIVA STANDARDOUTPUTLEVEL="" IDENT="">
+
+<MvCOMMENT>
+</MvCOMMENT>
+
+<MvFUNCTION NAME="Module_Description" PARAMETERS="module var" STANDARDOUTPUTLEVEL="">
+	<MvASSIGN NAME="l.module:code"		VALUE="spliced-global-pre-render">
+	<MvASSIGN NAME="l.module:name"		VALUE="Global Pre Render">
+	<MvASSIGN NAME="l.module:provider"	VALUE="Spliced Media">
+	<MvASSIGN NAME="l.module:version"		VALUE="5.5000">
+	<MvASSIGN NAME="l.module:api_ver"		VALUE="5.00">
+	<MvASSIGN NAME="l.module:features"	VALUE="system, vis_system, component, data_store, vis_store">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_Install_Store" PARAMETERS="module var" STANDARDOUTPUTLEVEL="" ERROROUTPUTLEVEL="">
+	<MvQUERY NAME  ="Merchant"
+	     QUERY ="{ 'CREATE TABLE ' $ g.Store_Table_Prefix $ 'global_pre_render
+			  (
+			    templ_id	' $ [ g.Module_Library_Native_DBAPI ].DB_Type_NUMBER( 0, 0 )	$ ',
+			    as_item TINYINT(1)
+			  )' }">
+	<MvIF EXPR="{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE="{ [ g.Module_Library_Utilities ].Error( 'SPLICED-GPR-00001', g.MvQUERY_Error ) }">
+	</MvIF>
+
+
+	<MvASSIGN NAME = "l.code" VALUE = "<mvt:assign name=\"g.mobile\" value=\"\'FALSE\'\" />
+		<mvt:assign name=\"l.settings:mobileAgentStrings\" value=\"miva_array_deserialize(\'up.browser,up.link,mmp,symbian,smartphone,midp,wap,webos,galaxy,phone,pocket,psp,treo,android,mobile,240x320,400X240,nitro,nokia,portalmmm,proxinet,blackberry,palm,series40,series60,s60,sonyericsson,e10i,samsung,nexus,htc,desire,ipod,itunes,vodafone,wap-,wapi,wapa,wapp,series40,series60,s60,sonyericsson,iemobile\')\" />
+		<mvt:foreach iterator=\"ua\" array=\"mobileAgentStrings\">
+			<mvt:if expr=\"l.settings:ua CIN s.http_user_agent\">
+				<mvt:assign name=\"g.mobile\" value=\"\'TRUE\'\" />
+			</mvt:if>
+		</mvt:foreach>" />
+
+	<MvASSIGN NAME="l.settings:templ_id"	VALUE="{ [ g.Module_Feature_TUI_MGR ].TemplateManager_Create_ManagedTemplate( l.code, l.null, 'spliced-global-pre-render.mvc' ) }">
+	<MvIF EXPR="{ l.settings:templ_id EQ 0 }">
+		<MvFUNCTIONRETURN VALUE="{ [ g.Module_Library_Utilities ].Error( 'SPLICED-GPR-00003', 'Error Creating Managed Template' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE="{ Global_Pre_Render_Insert( l.settings ) }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_Upgrade_Store" PARAMETERS="module var, version" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_Uninstall_Store" PARAMETERS="module var" STANDARDOUTPUTLEVEL="" ERROROUTPUTLEVEL="">
+	
+	<MvIF EXPR="{ Global_Pre_Render_Load( g.global_pre_render ) }">
+		<MvASSIGN NAME="l.null" VALUE="{ [ g.Module_Feature_TUI_MGR ].TemplateManager_Delete_ManagedTemplate( g.global_pre_render:templ_id ) }">
+	</MvIF>
+
+	<MvQUERY NAME="Merchant" QUERY="{ 'DROP TABLE ' $ g.Store_Table_Prefix $ 'global_pre_render' }">
+
+	<MvFUNCTIONRETURN VALUE=1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_System_Tabs" PARAMETERS="module var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE="SMGPR:Global Pre Render">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_System_Content" PARAMETERS="module var, tab, load_fields" STANDARDOUTPUTLEVEL="text, html, compresswhitespace">
+	<MvIF EXPR="{ l.tab EQ 'SMGPR' }">
+		<MvFUNCTIONRETURN VALUE="{ Module_Store_Content(l.module, l.tab, l.load_fields) }">
+	</MvIF>	
+	<MvFUNCTIONRETURN VALUE="1">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_System_Validate" PARAMETERS="module var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_System_Update" PARAMETERS="module var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE="{ Module_Store_Update(l.module) }">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="SystemModule_Screen" PARAMETERS="module var, screen" STANDARDOUTPUTLEVEL="">
+	<MvIF EXPR="{ NOT Global_Pre_Render_Load( g.global_pre_render ) }">
+		<MvFUNCTIONRETURN VALUE="{ [ g.Module_Library_Utilities ].Error( 'SPLICED-GPR-00007', 'Error Loading Global Pre Render Data' ) }">
+	</MvIF>
+
+	<MvIF EXPR="{ g.global_pre_render:as_item NE 1 }">
+		<MvDO FILE="{ g.Store_Template_Path $ 'spliced-global-pre-render.mvc' }"	NAME="l.null" VALUE="{ Template_Render( l.null, l.all_settings ) }">
+	</MvIF>
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="SystemModule_Action" PARAMETERS="module var, action" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE="1">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="SystemModule_UIException" PARAMETERS="module var, exception" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE="1">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_Store_Tabs" PARAMETERS="module var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE="SMGPR:Global Pre Render">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_Store_Content" PARAMETERS="module var, tab, load_fields" STANDARDOUTPUTLEVEL="text, html, compresswhitespace">
+	<MvIF EXPR="{ l.tab NE 'SMGPR' }">
+		<MvFUNCTIONRETURN VALUE = 1>
+	</MvIF>
+
+	<MvIF EXPR="{ NOT g.Data_Entry_Error }">
+		<MvIF EXPR="{ NOT Global_Pre_Render_Load( g.global_pre_render ) }">
+			<MvFUNCTIONRETURN VALUE = 1>
+		</MvIF>
+
+		<MvASSIGN NAME="l.set_fields" VALUE = 1>
+	</MvIF>
+
+	<MvIF EXPR="{ g.global_pre_render:template_clear_history }">
+		<MvIF EXPR="{ NOT [ g.Module_Feature_TUI_DB ].ManagedTemplate_Delete_History( g.global_pre_render:templ_id ) }">
+			<MvFUNCTIONRETURN VALUE = 0>
+		</MvIF>
+
+		<MvIF EXPR="{ NOT [ g.Module_Feature_TUI_DB ].ManagedTemplateVersion_Load_Template_Current( g.global_pre_render:templ_id, l.global_pre_render_template ) }">
+			<MvFUNCTIONRETURN VALUE = 0>
+		</MvIF>
+
+		<MvASSIGN NAME="g.global_pre_render:template_version"				VALUE="{ l.global_pre_render_template:id }">
+		<MvASSIGN NAME="g.global_pre_render:template_version_selected"	VALUE="{ l.global_pre_render_template:id }">
+	<MvELSEIF EXPR="{ g.global_pre_render:template_recall }">
+		<MvIF EXPR="{ NOT [ g.Module_Feature_TUI_DB ].ManagedTemplateVersion_Load_ID( g.global_pre_render:template_version_selected, l.global_pre_render_template ) }">
+			<MvFUNCTIONRETURN VALUE = 0>
+		</MvIF>
+
+		<MvASSIGN NAME="l.set_fields"	VALUE = 1>
+	<MvELSE>
+		<MvIF EXPR="{ NOT [ g.Module_Feature_TUI_DB ].ManagedTemplateVersion_Load_Template_Current( g.global_pre_render:templ_id, l.global_pre_render_template ) }">
+			<MvFUNCTIONRETURN VALUE = 0>
+		</MvIF>
+	</MvIF>
+
+	<MvIF EXPR="{ l.set_fields }">
+		<MvASSIGN NAME="g.global_pre_render:notes"							VALUE="">
+		<MvASSIGN NAME="g.global_pre_render:template_code"					VALUE="{ l.global_pre_render_template:source }">
+		<MvASSIGN NAME="g.global_pre_render:template_version"					VALUE="{ l.global_pre_render_template:id }">
+		<MvASSIGN NAME="g.global_pre_render:template_version_selected"		VALUE="{ l.global_pre_render_template:id }">
+		<MvASSIGN NAME="g.global_pre_render:notes"							VALUE="">
+	</MvIF>
+
+	<MvHIDE FIELDS="g.global_pre_render:templ_id">
+
+	<MvEVAL EXPR="{ Render_Form( ) }">
+	<MvFUNCTIONRETURN VALUE="1">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_Store_Validate" PARAMETERS="module var" STANDARDOUTPUTLEVEL="">
+	<MvIF EXPR="{ l.tab NE 'SMGPR' }">
+		<MvFUNCTIONRETURN VALUE = 1>
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Module_Store_Update" PARAMETERS="module var" STANDARDOUTPUTLEVEL="">
+
+	<MvIF EXPR="{ g.tab NE 'SMGPR' }">
+		<MvFUNCTIONRETURN VALUE = 1>
+	</MvIF>
+
+	<MvIF EXPR="{ NOT Global_Pre_Render_Load( l.settings ) }">
+		<MvFUNCTIONRETURN VALUE = 0>
+	</MvIF>
+
+	<MvIF EXPR="g.global_pre_render:as_item_update NE 1">
+		<MvASSIGN NAME="g.global_pre_render:as_item_update" VALUE="0" />
+	</MvIF>
+
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'UPDATE ' $ g.Store_Table_Prefix $ 'global_pre_render
+						  SET as_item = ?' }"
+			 FIELDS	= "g.global_pre_render:as_item_update">
+	<MvIF EXPR="{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE="{ [ g.Module_Library_Utilities ].Error( 'SPLICED-GPR-00001', g.MvQUERY_Error ) }">
+	</MvIF>
+
+	<MvIF EXPR="{ NOT [ g.Module_Feature_TUI_DB ].ManagedTemplateVersion_Load_ID( g.global_pre_render:template_version, l.global_pre_render_template ) OR
+					NOT [ g.Module_Feature_TUI_DB ].ManagedTemplate_Load_ID( l.settings:templ_id, l.managedtemplate ) }">
+		<MvFUNCTIONRETURN VALUE = 0>
+	</MvIF>
+
+	<MvIF EXPR="{ crypto_md5( g.global_pre_render:template_code ) EQ crypto_md5( l.global_pre_render_template:source ) }">
+		<MvIF EXPR="{ l.global_pre_render_template:id NE l.managedtemplate:current_id }">
+			<MvASSIGN NAME="l.managedtemplate:current_id"	VALUE="{ l.global_pre_render_template:id }">
+
+			<MvIF EXPR="{ NOT [ g.Module_Feature_TUI_MGR ].TemplateManager_Revert_ManagedTemplateVersion( l.managedtemplate, l.global_pre_render_template, l.compile_error ) }">
+				<MvIF EXPR="{ len( l.compile_error ) }">
+					<MvASSIGN NAME="l.null" VALUE="{ [ g.Module_Admin ].FieldError( 'SPLICED-GPR-00003', 'global_pre_render:template_code', l.compile_error ) }">
+					<MvFUNCTIONRETURN VALUE = 1>
+				</MvIF>
+
+				<MvFUNCTIONRETURN VALUE = 0>
+			</MvIF>
+
+			<MvEVAL EXPR="{ [ g.Module_Admin ].Admin_Log_Action( 'SPLICED-GPR-00004', l.module:name $ ' template reverted' ) }">
+		</MvIF>
+	<MvELSE>
+		<MvIF EXPR="{ NOT [ g.Module_Feature_TUI_MGR ].TemplateManager_Create_ManagedTemplateVersion( l.managedtemplate, g.global_pre_render:notes, g.global_pre_render:template_code, l.settings, l.compile_error ) }">
+			<MvIF EXPR="{ len( l.compile_error ) }">
+				<MvASSIGN NAME="l.null" VALUE="{ [ g.Module_Admin ].FieldError( 'SPLICED-GPR-00005', 'global_pre_render:template_code', l.compile_error ) }">
+				<MvFUNCTIONRETURN VALUE = 1>
+			</MvIF>
+
+			<MvFUNCTIONRETURN VALUE = 0>
+		</MvIF>
+
+		<MvEVAL EXPR="{ [ g.Module_Admin ].Admin_Log_Action( 'SPLICED-GPR-00006', l.module:name $ ' template updated' ) }">
+	</MvIF>
+	
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+
+<MvFUNCTION NAME="ComponentModule_Tabs" PARAMETERS="module var, item, settings var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE="">
+</MvFUNCTION>
+
+<MvFUNCTION NAME="ComponentModule_Validate" PARAMETERS="module var, item, field_prefix, fields var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="ComponentModule_Update" PARAMETERS="module var, item, field_prefix, fields var, settings var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="ComponentModule_Content" PARAMETERS="module var, item, tab, load_fields, field_prefix, fields var, settings var" STANDARDOUTPUTLEVEL="">
+
+</MvFUNCTION>
+
+<MvFUNCTION NAME="ComponentModule_Defaults" PARAMETERS="module var, settings var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="ComponentModule_Page_Assign" PARAMETERS="module var, page var, item, settings var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="ComponentModule_Page_Unassign" PARAMETERS="module var, page var, item, settings var" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="ComponentModule_Initialize" PARAMETERS="module var, item, all_settings var, settings var" STANDARDOUTPUTLEVEL="">
+	<MvIF EXPR="{ g.global_pre_render:as_item EQ 1 }">
+		<MvDO FILE="{ g.Store_Template_Path $ 'spliced-global-pre-render.mvc' }"	NAME="l.null" VALUE="{ Template_Render( l.null, l.all_settings ) }">
+	</MvIF>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="ComponentModule_Render_Start" PARAMETERS="module var, item, all_settings var, settings var, param" STANDARDOUTPUTLEVEL="text, html, compresswhitespace">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="ComponentModule_Render_End" PARAMETERS="module var, item, all_settings var, settings var, param" STANDARDOUTPUTLEVEL="">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+
+<MvFUNCTION NAME="Render_Form" PARAMETERS="" STANDARDOUTPUTLEVEL="text, html, compresswhitespace">
+		<p>This module allows you to execute some logic before a screen begins to be rendered. This is ideal for determining
+		things before you start to build up content such as determining if they should be displayed as mobile or not, or to
+		provide an easier place to define global variables available to all screens. By default, you only have access to miva
+		native functionality. If you wish to use this in conjuction with other modules you will need to check the box 
+		<strong>As Item</strong> to use this module as an item on a page. You will also need to make sure you assign it
+		to each page you wish to make use of it.</p>
+
+		<table width="100%" cellspacing="0" cellpadding="0">
+			<thead>
+				<tr>
+					<th></th>
+				</tr>
+			</thead>
+			<tfoot>
+			</tfoot>
+			<tbody>
+				<tr>
+					<td>
+						<MvEVAL EXPR="{ [ g.Module_Library_Utilities ].DrawTemplateTextArea_SetModified( 'global_pre_render:template_code', g.global_pre_render:template_code, 20, 100 ) }">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<table border="0" cellpadding="2" cellspacing="0">
+							<tr><td valign="top" nowrap>
+								Notes:
+							</td><td width="100%">
+								<input type="text" name="global_pre_render:notes" value="{ encodeentities( g.global_pre_render:notes ) }" size="40">
+							</td></tr>
+							<tr>
+								<td align="left" nowrap>&nbsp;</td>
+								<td align="left" nowrap>
+									<input type="hidden" name="global_pre_render:template_recall" value=0>
+									<input type="hidden" name="global_pre_render:template_clear_history" value=0>
+									<MvHIDE FIELDS="g.global_pre_render:template_version">
+									<MvEVAL EXPR="{ [ g.Module_Feature_TUI_MGR ].TemplateManager_ManagedTemplate_Version_Select( g.global_pre_render:templ_id, 'global_pre_render:template_version_selected', g.global_pre_render:template_version_selected ) }">
+									<a href="#" onclick="{ 'Toggle( \'' $ 'global_pre_render:template_recall' $ '\', 1 ); return false;' }">Recall</a>
+									<a href="#" onclick="{ 'Toggle_Prompt( \'Are you sure you wish to delete all saved configuration settings for HTML Profile?\\r\\nThis action cannot be undone.\', \'global_pre_render:template_clear_history' $ '\', 1 ); return false;' }">Clear History</a>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<p>Enabling as item allows you to access other module functionality in your template. The only downside
+						to this is that it is not automatically executed on each page load, it is only executed when an item 
+						for this module is created and assigned to a page.</p>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div><strong><label>As Item</label></strong>
+							<MvIF EXPR="{ g.global_pre_render:as_item EQ 1 }">
+								<input type="checkbox" value="1" name="global_pre_render:as_item_update" checked="checked" />
+							<MvELSE>
+								<input type="checkbox" value="1" name="global_pre_render:as_item_update" />
+							</MvIF>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+</MvFUNCTION>
+
+
+<MvFUNCTION NAME="Global_Pre_Render_Insert" PARAMETERS="data var" STANDARDOUTPUTLEVEL="" ERROROUTPUTLEVEL="">
+	<MvQUERY NAME	= "Merchant"
+			 QUERY	= "{ 'INSERT INTO ' $ g.Store_Table_Prefix $ 'global_pre_render
+						  ( templ_id, as_item )
+						  VALUES
+						  ( ?, 0 )' }"
+			 FIELDS	= "l.data:templ_id">
+	<MvIF EXPR="{ g.MvQUERY_Error }">
+		<MvFUNCTIONRETURN VALUE="{ [ g.Module_Library_Utilities ].Error( 'SPLICED-GPR-00001', g.MvQUERY_Error ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME="Global_Pre_Render_Load" PARAMETERS="global_pre_render var" STANDARDOUTPUTLEVEL="" ERROROUTPUTLEVEL="">
+	<MvOPENVIEW NAME	= "Merchant"
+			    VIEW	= "Global_Pre_Render_Load"
+				QUERY	= "{ 'SELECT * FROM ' $ g.Store_Table_Prefix $ 'global_pre_render' }">
+	<MvIF EXPR="{ g.MvOPENVIEW_Error }">
+		<MvFUNCTIONRETURN VALUE="{ [ g.Module_Library_Utilities ].Error( 'SPLICED-GPR-00002', g.MvOPENVIEW_Error ) }">
+	</MvIF>
+
+	<MvASSIGN NAME="l.global_pre_render:templ_id"	VALUE="{ Global_Pre_Render_Load.d.templ_id }">
+	<MvASSIGN NAME="l.global_pre_render:as_item"	VALUE="{ Global_Pre_Render_Load.d.as_item }">
+
+	<MvCLOSEVIEW NAME="Merchant" VIEW="Global_Pre_Render_Load">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
