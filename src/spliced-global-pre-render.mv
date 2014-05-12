@@ -1,6 +1,15 @@
 <MIVA STANDARDOUTPUTLEVEL="" IDENT="">
 
 <MvCOMMENT>
+Global Pre Render
+
+Execute some template logic before a page starts to get rendered.
+
+Released under Apache 2.0 License
+
+https://github.com/ghassani/miva-global-pre-render
+
+
 </MvCOMMENT>
 
 <MvFUNCTION NAME="Module_Description" PARAMETERS="module var" STANDARDOUTPUTLEVEL="">
@@ -321,6 +330,9 @@
 				</tr>
 			</tbody>
 		</table>
+		<hr />
+		<p>All issues should be submitted through this modules GitHub Repository at <a href="https://github.com/ghassani/miva-global-pre-render" target="_blank">https://github.com/ghassani/miva-global-pre-render</a>.</p>
+		<p>Developed by Gassan Idriss - ghassani@splicedmedia.com</p>
 </MvFUNCTION>
 
 
